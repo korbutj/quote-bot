@@ -1,13 +1,16 @@
 ﻿using System.Text.RegularExpressions;
+using Discord;
 using Discord.Commands;
 using QuoteBot.Helpers;
+using QuoteBot.Models;
 
 namespace QuoteBot.Modules
 {
     public class QuizModule : ModuleBase<SocketCommandContext>
     {
         private static Regex TimeRegex = new Regex(@"(\d\d:\d\d)");
-        
+
+
         [Command("SetQuoteChannel")]
         public Task SetQuoteChannel(string channelName)
         {
@@ -39,9 +42,22 @@ namespace QuoteBot.Modules
         }
 
         [Command("StartQuiz")]
-        public Task StartQuiz()
+        public async Task StartQuiz()
         {
-            return ReplyAsync("TEST");
+            var regex = new Regex(".{3,32}#[0-9]{4}");
+            var messages = (await this.Context.Channel.GetMessagesAsync(1000).ToListAsync()).SelectMany(x => x);
+
+            var users = this.Context.Guild.Roles.FirstOrDefault(x => x.Name.ToLower() == "Wewnętrzny krąg".ToLower())?.Members;
+            
+            foreach (var message in messages.Where(x => x.MentionedUserIds.Any()))
+            {
+                var cleanContent = regex.Replace(message.CleanContent, "<zgadnij kotku co mam w srodku>");
+                var authors = message.MentionedUserIds.Select(x => new User(){ Id = x, Name = users.FirstOrDefault(z => z.Id == x).DisplayName}).ToList();
+                
+                EnvironmentSettings.Citations.Add(new Citation() { Authors = authors, Content = cleanContent, MessageId = message.Id});
+            }
+            
+            await ReplyAsync("baza wirusow programu avast zostala zaaktualizowana");
         }
     }
 }

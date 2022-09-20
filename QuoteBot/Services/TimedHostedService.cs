@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using QuoteBot.Helpers;
 
 namespace QuoteBot.Services;
 
@@ -10,7 +11,7 @@ public class TimedHostedService : IHostedService, IDisposable
     private readonly ILogger<TimedHostedService> _logger;
     private readonly DiscordSocketClient _client;
     private Timer? _timer = null;
-    private const int secondsInterval = 1;
+    private const int secondsInterval = 60;
     
     public TimedHostedService(ILogger<TimedHostedService> logger, DiscordSocketClient client)
     {
@@ -31,11 +32,13 @@ public class TimedHostedService : IHostedService, IDisposable
     private void DoWork(object? state)
     {
         var count = Interlocked.Increment(ref executionCount);
-        
-        // _client.GetChannel()
 
+        var timeNow = DateTime.Now;
+        var guildsToStart = EnvironmentSettings.configDic.Where(x => TimeSpan.FromHours(double.Parse(x.Value.QuizTime.Split(":").First())) > timeNow.TimeOfDay);
+
+        
         _logger.LogInformation(
-            "Timed Hosted Service is working. Count: {Count}", count);
+            $"Timed Hosted Service is working. guildId: {guildsToStart.FirstOrDefault().Key.ToString()}");
     }
 
     public Task StopAsync(CancellationToken stoppingToken)
