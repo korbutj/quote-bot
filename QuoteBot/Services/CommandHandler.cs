@@ -8,7 +8,8 @@ public class CommandHandler
 {
     private readonly DiscordSocketClient _client;
     private readonly CommandService _commands;
-
+    private IServiceProvider _serviceProvider;
+    
     // Retrieve client and CommandService instance via ctor
     public CommandHandler(DiscordSocketClient client, CommandService commands)
     {
@@ -16,11 +17,11 @@ public class CommandHandler
         _client = client;
     }
     
-    public async Task InstallCommandsAsync()
+    public async Task InstallCommandsAsync(IServiceProvider services)
     {
         // Hook the MessageReceived event into our command handler
         _client.MessageReceived += HandleCommandAsync;
-
+        _serviceProvider = services;
         // Here we discover all of the command modules in the entry 
         // assembly and load them. Starting from Discord.NET 2.0, a
         // service provider is required to be passed into the
@@ -30,7 +31,7 @@ public class CommandHandler
         // If you do not use Dependency Injection, pass null.
         // See Dependency Injection guide for more information.
         await _commands.AddModulesAsync(assembly: Assembly.GetEntryAssembly(), 
-                                        services: null);
+                                        services: services);
     }
 
     private async Task HandleCommandAsync(SocketMessage messageParam)
@@ -56,6 +57,6 @@ public class CommandHandler
         await _commands.ExecuteAsync(
             context: context, 
             argPos: argPos,
-            services: null);
+            services: _serviceProvider);
     }
 }

@@ -34,11 +34,11 @@ public class TimedHostedService : IHostedService, IDisposable
         var count = Interlocked.Increment(ref executionCount);
 
         var timeNow = DateTime.Now;
-        var guildsToStart = EnvironmentSettings.configDic.Where(x => TimeSpan.FromHours(double.Parse(x.Value.QuizTime.Split(":").First())) > timeNow.TimeOfDay);
+        // var guildsToStart = EnvironmentSettings.configDic.Where(x => TimeSpan.FromHours(double.Parse(x.Value.QuizTime.Split(":").First())) > timeNow.TimeOfDay);
 
-        
-        _logger.LogInformation(
-            $"Timed Hosted Service is working. guildId: {guildsToStart.FirstOrDefault().Key.ToString()}");
+        //
+        // _logger.LogInformation(
+        //     $"Timed Hosted Service is working. guildId: {guildsToStart.FirstOrDefault().Key.ToString()}");
     }
 
     public Task StopAsync(CancellationToken stoppingToken)

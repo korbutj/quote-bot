@@ -7,23 +7,25 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using QuoteBot.Helpers;
 using QuoteBot.Services;
 
 namespace QuoteBot
 {
     class Program
     {
-        static void Main(string[] args)
-            => new Program().MainAsync().GetAwaiter().GetResult();
-
         private DiscordSocketClient _client;
         private IConfiguration _config;
-
+        
         private readonly DiscordSocketConfig _socketConfig = new()
         {
             GatewayIntents = GatewayIntents.All,
             AlwaysDownloadUsers = true,
         };
+        
+        static void Main(string[] args)
+            => new Program().MainAsync().GetAwaiter().GetResult();
         
         public async Task MainAsync()
         {
@@ -31,17 +33,13 @@ namespace QuoteBot
             _config = BuildConfig();
 
             var services = ConfigureServices();
-            services.GetRequiredService<LogService>();
-            await services.GetRequiredService<CommandHandler>().InstallCommandsAsync();
+            await services.GetRequiredService<CommandHandler>().InstallCommandsAsync(services);
 
             await _client.LoginAsync(TokenType.Bot, _config["token"]);
             await _client.StartAsync();
 
             var hostedService = new TimedHostedService(services.GetRequiredService<ILogger<TimedHostedService>>(),services.GetRequiredService<DiscordSocketClient>());
-
-
             await hostedService.StartAsync(new CancellationToken());
-            
             
             await Task.Delay(-1);
         }
@@ -59,6 +57,8 @@ namespace QuoteBot
                 .AddSingleton<LogService>()
                 // Extra
                 .AddSingleton(_config)
+                .AddScoped<IMongoClient>(x => new MongoClient(_config["mongoDbConnection"]))
+                .AddScoped<IGuildService, EnvironmentService>()
                 // Add additional services here...
                 .BuildServiceProvider();
         }
