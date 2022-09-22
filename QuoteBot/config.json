@@ -1,3 +1,4 @@
 ﻿{
-    "token": "$token"
+    "token": "<token>>",
+    "mongoDbConnection": "<dbconstring>"
 }
