@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using QuoteBot.Models;
 using QuoteBot.Services;
-using GuildSettings = QuoteBot.Models.GuildSettings;
 
 namespace QuoteBot.Helpers;
 /// <summary>
@@ -12,7 +11,7 @@ public class EnvironmentService : IGuildService
 {
     private static readonly IConfiguration config;
 
-    public Dictionary<ulong, GuildSettings> configDic;
+    private Dictionary<ulong, GuildSettings> configDic;
     private Dictionary<ulong, List<Citation>> citations;
 
     public EnvironmentService()
@@ -20,7 +19,12 @@ public class EnvironmentService : IGuildService
         configDic = new Dictionary<ulong, GuildSettings>();
         citations = new Dictionary<ulong, List<Citation>>();
     }
-    
+
+    public async Task<Dictionary<ulong, GuildSettings>> GetAllGuildSettings()
+    {
+        return configDic;
+    }
+
     public async Task SetQuoteChannel(ulong guildId, ulong idChannel)
     {
         GuildSettings guildSettings;

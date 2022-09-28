@@ -13,6 +13,11 @@ public class GuildService : IGuildService
         _client = client;
     }
 
+    public Task<Dictionary<ulong, GuildSettings>> GetAllGuildSettings()
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task SetQuoteChannel(ulong guildId, ulong idChannel)
     {
         var mongoDatabase = _client.GetDatabase(Globals.MongoDbName);
