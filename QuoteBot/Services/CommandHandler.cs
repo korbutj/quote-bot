@@ -21,6 +21,7 @@ public class CommandHandler
     {
         // Hook the MessageReceived event into our command handler
         _client.MessageReceived += HandleCommandAsync;
+        _client.ButtonExecuted += HandleButtonClickAsync;
         _serviceProvider = services;
         // Here we discover all of the command modules in the entry 
         // assembly and load them. Starting from Discord.NET 2.0, a
@@ -32,6 +33,13 @@ public class CommandHandler
         // See Dependency Injection guide for more information.
         await _commands.AddModulesAsync(assembly: Assembly.GetEntryAssembly(), 
                                         services: services);
+    }
+
+    private async Task HandleButtonClickAsync(SocketMessageComponent component)
+    {
+        var dataCustomId = component.Data.CustomId.Split('-');
+        var result = dataCustomId.ElementAt(1);
+        
     }
 
     private async Task HandleCommandAsync(SocketMessage messageParam)

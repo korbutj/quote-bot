@@ -38,7 +38,7 @@ namespace QuoteBot
             await _client.LoginAsync(TokenType.Bot, _config["token"]);
             await _client.StartAsync();
 
-            var hostedService = new TimedHostedService(services.GetRequiredService<ILogger<TimedHostedService>>(),services.GetRequiredService<DiscordSocketClient>());
+            var hostedService = new TimedHostedService(services.GetRequiredService<ILogger<TimedHostedService>>(),services.GetRequiredService<DiscordSocketClient>(), new EnvironmentService());
             await hostedService.StartAsync(new CancellationToken());
             
             await Task.Delay(-1);
