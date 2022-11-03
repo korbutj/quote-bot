@@ -12,4 +12,5 @@ public interface IGuildService
     Task<string> GetGuildTime(ulong guildId);
     Task AddCitation(ulong guildId, Citation citation);
     Task<Citation> GetRandomCitation(ulong guildId);
+    Task SaveSettingsToFile();
 }

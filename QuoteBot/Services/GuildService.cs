@@ -1,28 +1,26 @@
-﻿using MongoDB.Driver;
-using QuoteBot.Helpers;
+﻿using QuoteBot.Helpers;
 using QuoteBot.Models;
 
 namespace QuoteBot.Services;
 
 public class GuildService : IGuildService
 {
-    private readonly IMongoClient _client;
+    private const string DbName = "quote-bot";
+    private const string GuildSettings = "guild-settings";
 
-    public GuildService(IMongoClient client)
+    public GuildService()
     {
-        _client = client;
+        
     }
 
-    public Task<Dictionary<ulong, GuildSettings>> GetAllGuildSettings()
+    public async Task<Dictionary<ulong, GuildSettings>> GetAllGuildSettings()
     {
-        throw new NotImplementedException();
+        return null;
     }
 
     public async Task SetQuoteChannel(ulong guildId, ulong idChannel)
     {
-        var mongoDatabase = _client.GetDatabase(Globals.MongoDbName);
-        // var guild = mongoDatabase.GetCollection<GuildSettings>(guildId.ToString()).UpdateOne(x => x.Id == guildId, new UpdateOptions<GuildSettings>() {});
-        // var res = (await guild.FindAsync(x => x.Id == guildId)).FirstOrDefault(); 
+        
         
     }
 
@@ -42,6 +40,11 @@ public class GuildService : IGuildService
     }
 
     public Task<Citation> GetRandomCitation(ulong guildId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SaveSettingsToFile()
     {
         throw new NotImplementedException();
     }
