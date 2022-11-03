@@ -25,7 +25,7 @@ namespace QuoteBot
         
         static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
-        
+
         public async Task MainAsync()
         {
             _client = new DiscordSocketClient(_socketConfig);
@@ -42,7 +42,12 @@ namespace QuoteBot
             await environmentService.UpdateGuildSettingsFromFile();
             
             var hostedService = new TimedHostedService(services.GetRequiredService<ILogger<TimedHostedService>>(),services.GetRequiredService<DiscordSocketClient>(), environmentService);
-            await hostedService.StartAsync(new CancellationToken());
+            var cancellationToken = new CancellationToken();
+            
+            await hostedService.StartAsync(cancellationToken);
+            
+            var cacheService = new CacheHostedService(services.GetRequiredService<ILogger<CacheHostedService>>(), environmentService);
+            await cacheService.StartAsync(cancellationToken);
             
             await Task.Delay(-1);
         }
