@@ -111,17 +111,30 @@ namespace QuoteBot.Modules
             var msg = new StringBuilder();
 
             msg.AppendLine("Wyniki ostatatniego kłizu:");
-            msg.AppendLine("✨🎉🎂🎆🎇🎊✨🎉🎂🎆🎇🎊");
+            msg.AppendLine("✨🎉🎂🎆🎇🎊✨🎉🎂");
+            msg.AppendLine("");
             
             var winners = this.Context.Guild.Users.Where(x => quizDetails.CorrectAnswers.Contains(x.Id));
             foreach (var winner in winners)
             {
                 msg.AppendLine(winner.Mention);
             }
-            msg.AppendLine("✨🎉🎂🎆🎇🎊✨🎉🎂🎆🎇🎊");
+            msg.AppendLine("");
+            msg.AppendLine("✨🎉🎂🎆🎇🎊✨🎉🎂");
 
             msg.AppendLine("Winners winners chickens dinners!");
             await ReplyAsync(msg.ToString());
+        }
+        
+        [Command("myresults")]
+        public async Task MyResults()
+        {
+            var scoreboard = await _scoreService.GetScore(this.Context.User.Id);
+
+            await ReplyAsync($"{this.Context.User.Mention}\n" +
+                             $"poprawnie: {scoreboard.GuessedCorrectly}\n" +
+                             $"niepoprawnie: {scoreboard.GuessedIncorrectly}\n" +
+                             $"procencik: {scoreboard.PercentageGuessed:F}%");
         }
     }
 }
