@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using QuoteBot.Models;
 using QuoteBot.Services;
@@ -11,20 +12,20 @@ public class EnvironmentService : IGuildService
 {
     private static readonly IConfiguration config;
 
-    private Dictionary<ulong, GuildSettings> guildSettingsMap;
-    private Dictionary<ulong, List<Citation>> citationsMap;
+    private ConcurrentDictionary<ulong, GuildSettings> guildSettingsMap;
+    private ConcurrentDictionary<ulong, List<Citation>> citationsMap;
 
-    private const string GuildSettingsJsonPath = "~/guildSettings.json";
-    private const string CitationsJsonPath = "~/citations.json";
+    private const string GuildSettingsJsonPath = "./guildSettings.json";
+    private const string CitationsJsonPath = "./citations.json";
 
     
     public EnvironmentService()
     {
-        guildSettingsMap = new Dictionary<ulong, GuildSettings>();
-        citationsMap = new Dictionary<ulong, List<Citation>>();
+        guildSettingsMap = new ConcurrentDictionary<ulong, GuildSettings>();
+        citationsMap = new ConcurrentDictionary<ulong, List<Citation>>();
     }
 
-    public async Task<Dictionary<ulong, GuildSettings>> GetAllGuildSettings()
+    public async Task<ConcurrentDictionary<ulong, GuildSettings>> GetAllGuildSettings()
     {
         return guildSettingsMap;
     }
@@ -84,7 +85,7 @@ public class EnvironmentService : IGuildService
         if(this.citationsMap.ContainsKey(guildId))
             this.citationsMap[guildId].Add(citation);
         else
-            this.citationsMap.Add(guildId, new List<Citation>() { citation });
+            this.citationsMap.TryAdd(guildId, new List<Citation>() { citation });
     }
 
     public async Task<Citation> GetRandomCitation(ulong guildId)
@@ -99,24 +100,17 @@ public class EnvironmentService : IGuildService
 
     public async Task SaveSettingsToFile()
     {
-        var guildSettings = JsonConvert.SerializeObject(guildSettingsMap);
-        var citations = JsonConvert.SerializeObject(citationsMap);
-
-        await File.WriteAllTextAsync(GuildSettingsJsonPath, guildSettings);
-        await File.WriteAllTextAsync(CitationsJsonPath, citations);
+        await FileCacher.SaveToFile(GuildSettingsJsonPath, guildSettingsMap);
+        await FileCacher.SaveToFile(CitationsJsonPath, citationsMap);
     }
 
     public async Task UpdateGuildSettingsFromFile()
     {
-        var settings = await File.ReadAllTextAsync(GuildSettingsJsonPath);
-
-        guildSettingsMap = JsonConvert.DeserializeObject<Dictionary<ulong, GuildSettings>>(settings) ?? new Dictionary<ulong, GuildSettings>();
+        guildSettingsMap = await FileCacher.UpdateFromFile<ConcurrentDictionary<ulong, GuildSettings>>(GuildSettingsJsonPath);
     }
     
     public async Task UpdateCitationsFromFile()
     {
-        var citations = await File.ReadAllTextAsync(CitationsJsonPath);
-
-        citationsMap = JsonConvert.DeserializeObject<Dictionary<ulong, List<Citation>>>(citations) ?? new Dictionary<ulong, List<Citation>>();
+        citationsMap = await FileCacher.UpdateFromFile<ConcurrentDictionary<ulong, List<Citation>>>(CitationsJsonPath);
     }
 }

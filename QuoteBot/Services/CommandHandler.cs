@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Discord.Commands;
 using Discord.WebSocket;
+using QuoteBot.Helpers;
 
 namespace QuoteBot.Services;
 
@@ -37,9 +38,27 @@ public class CommandHandler
 
     private async Task HandleButtonClickAsync(SocketMessageComponent component)
     {
-        var dataCustomId = component.Data.CustomId.Split('-');
-        var result = dataCustomId.ElementAt(1);
+        var scoreService = (IScoreService?)_serviceProvider.GetService(typeof(IScoreService));
+        if (!ulong.TryParse(component.Data.CustomId.Split('-')[0], out ulong citationId))
+            throw new NotImplementedException();
         
+        if (!Guid.TryParse(component.Data.CustomId.Split('-')[1], out Guid sessionId))
+            throw new NotImplementedException();
+
+        var anwseredCorrectly = !component.Data.CustomId.Contains("false");
+
+        if (!await scoreService.AddScore(component.User.Id, sessionId, anwseredCorrectly))
+        {
+            await component.RespondAsync($"{component.User.Mention}: ziomuś już odpowiedziałeś na to pytanie >:C");
+            return;
+        }
+        
+        var userScoreboard = await scoreService.GetScore(component.User.Id);
+        
+        if(anwseredCorrectly)
+            await component.RespondAsync($"{component.User.Mention}: 😎 gościu +1 łatwiutko \n {userScoreboard.PercantageGuessed:F}% aktualny stan rzeczy");
+        else
+            await component.RespondAsync($"{component.User.Mention}: spierdoliłeś :fbsmiley: \n {userScoreboard.PercantageGuessed:F}% aktualny stan rzeczy");
     }
 
     private async Task HandleCommandAsync(SocketMessage messageParam)

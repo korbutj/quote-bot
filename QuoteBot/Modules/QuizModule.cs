@@ -92,7 +92,8 @@ namespace QuoteBot.Modules
                     .OrderBy(x => rand.Next())
                     .Take(authorsCount)
                     .ToList();
-                builder.WithButton(string.Join(", ", fakeAnswerUsers.Select(x => x.DisplayName)), $"{citation.MessageId.ToString()}-false{i}", ButtonStyle.Primary);
+                var sessionId = Guid.NewGuid().ToString().Replace("-", "");
+                builder.WithButton(string.Join(", ", fakeAnswerUsers.Select(x => x.DisplayName)), $"{citation.MessageId.ToString()}-{sessionId}-false{i}", ButtonStyle.Primary);
             }
             
             await ReplyAsync($"{citation.Content} \n {string.Join(" ", citation.Authors.Select(x => x.Name))}", components: builder.Build());

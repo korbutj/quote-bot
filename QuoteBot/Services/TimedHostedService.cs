@@ -34,7 +34,6 @@ public class TimedHostedService : IHostedService, IDisposable
 
     private async void DoWork(object? state)
     {
-        // var count = Interlocked.Increment(ref executionCount);
         var timeNow = DateTime.Now.TimeOfDay;
 
         var guilds = await _guildService.GetAllGuildSettings();
@@ -42,7 +41,7 @@ public class TimedHostedService : IHostedService, IDisposable
         foreach (var guild in guilds)
         {
             var timeToExecute = TimeSpan.Parse(guild.Value.QuizTime);
-            if (timeToExecute > timeNow && (!guild.Value.LastExecution.HasValue || guild.Value.LastExecution.Value.Date == DateTime.Today))
+            if (timeToExecute > timeNow && !guild.Value.LastExecution.HasValue)
                 ShowQuizPopup(guild);
         }
     }

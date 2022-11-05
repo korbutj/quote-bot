@@ -37,7 +37,7 @@ namespace QuoteBot
             await _client.LoginAsync(TokenType.Bot, _config["token"]);
             await _client.StartAsync();
 
-            var environmentService = services.GetRequiredService<EnvironmentService>();
+            var environmentService = services.GetRequiredService<IGuildService>();
             await environmentService.UpdateCitationsFromFile();
             await environmentService.UpdateGuildSettingsFromFile();
             
@@ -65,7 +65,8 @@ namespace QuoteBot
                 .AddSingleton<LogService>()
                 // Extra
                 .AddSingleton(_config)
-                .AddScoped<IGuildService, EnvironmentService>()
+                .AddSingleton<IGuildService, EnvironmentService>()
+                .AddSingleton<IScoreService, ScoreService>()
                 // Add additional services here...
                 .BuildServiceProvider();
         }

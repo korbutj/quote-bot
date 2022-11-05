@@ -13,7 +13,7 @@ public class CacheHostedService : IHostedService, IDisposable
     private readonly DiscordSocketClient _client;
     private readonly IGuildService _guildService;
     private Timer? _timer = null;
-    private const int cacheSettings = 1800;
+    private const int cacheSaveIntervalSettings = 15;
     
     public CacheHostedService(ILogger<CacheHostedService> logger, IGuildService guildService)
     {
@@ -26,7 +26,7 @@ public class CacheHostedService : IHostedService, IDisposable
         _logger.LogInformation("Timed Hosted Service running.");
 
         _timer = new Timer(DoWork, null, TimeSpan.Zero,
-            TimeSpan.FromSeconds(cacheSettings));
+            TimeSpan.FromSeconds(cacheSaveIntervalSettings));
 
         return Task.CompletedTask;
     }

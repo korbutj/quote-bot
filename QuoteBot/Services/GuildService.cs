@@ -1,4 +1,5 @@
-﻿using QuoteBot.Helpers;
+﻿using System.Collections.Concurrent;
+using QuoteBot.Helpers;
 using QuoteBot.Models;
 
 namespace QuoteBot.Services;
@@ -13,7 +14,7 @@ public class GuildService : IGuildService
         
     }
 
-    public async Task<Dictionary<ulong, GuildSettings>> GetAllGuildSettings()
+    public async Task<ConcurrentDictionary<ulong, GuildSettings>> GetAllGuildSettings()
     {
         return null;
     }
@@ -45,6 +46,16 @@ public class GuildService : IGuildService
     }
 
     public Task SaveSettingsToFile()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateCitationsFromFile()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateGuildSettingsFromFile()
     {
         throw new NotImplementedException();
     }
