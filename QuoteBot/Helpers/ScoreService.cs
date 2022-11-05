@@ -4,6 +4,8 @@ namespace QuoteBot.Helpers;
 
 public class ScoreService : IScoreService
 {
+    private static ConcurrentDictionary<ulong, Guid> LastQuizIdForGuild { get; set; } = new ConcurrentDictionary<ulong, Guid>(); 
+
     //key1 - idGuild
     //key2 - idUser
     private ConcurrentDictionary<ulong, Scoreboard> scores { get; set; } = new ConcurrentDictionary<ulong, Scoreboard>();
@@ -12,7 +14,6 @@ public class ScoreService : IScoreService
     private const string scoresPath = "./scores.json";
     private const string quizesResultsPath = "./results.json";
 
-    public static ConcurrentDictionary<ulong, Guid> LastQuizIdForGuild { get; set; } = new ConcurrentDictionary<ulong, Guid>(); 
 
     /// <returns>validation whether user already answered to this question</returns>
     public async Task<bool> AddScore(ulong idGuild, ulong idUser, Guid quizId, bool answeredCorrectly)

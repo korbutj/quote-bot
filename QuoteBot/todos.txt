@@ -1,0 +1,2 @@
+﻿odpalanie quizów na ustalony czas,
+odpalanie wyników na XXX czasu po wysłaniu quizu
