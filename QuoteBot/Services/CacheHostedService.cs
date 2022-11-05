@@ -13,7 +13,7 @@ public class CacheHostedService : IHostedService, IDisposable
     private readonly DiscordSocketClient _client;
     private readonly IGuildService _guildService;
     private Timer? _timer = null;
-    private const int cacheSaveIntervalSettings = 15;
+    private const int cacheSaveIntervalSettings = 900;
     
     public CacheHostedService(ILogger<CacheHostedService> logger, IGuildService guildService)
     {
