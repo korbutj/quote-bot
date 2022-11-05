@@ -11,11 +11,13 @@ public class ScoreService : IScoreService
 
     private const string scoresPath = "./scores.json";
     private const string quizesResultsPath = "./results.json";
-    
+
+    public static ConcurrentDictionary<ulong, Guid> LastQuizIdForGuild { get; set; } = new ConcurrentDictionary<ulong, Guid>(); 
+
     /// <returns>validation whether user already answered to this question</returns>
-    public async Task<bool> AddScore(ulong idUser, Guid sessionId, bool answeredCorrectly)
+    public async Task<bool> AddScore(ulong idGuild, ulong idUser, Guid quizId, bool answeredCorrectly)
     {
-        if (quizesResults.ContainsKey(sessionId) && quizesResults[sessionId].Participants.Any(x => x == idUser))
+        if (quizesResults.ContainsKey(quizId) && quizesResults[quizId].Participants.Any(x => x == idUser))
             return false;
         
         if (!scores.ContainsKey(idUser))
@@ -37,7 +39,7 @@ public class ScoreService : IScoreService
             scores[idUser] = currentScoreboard;
         }
         
-        HandleSessionDetails(idUser, sessionId, answeredCorrectly);
+        HandleQuizDetails(idGuild, idUser, quizId, answeredCorrectly);
         
         return true;
     }
@@ -49,6 +51,16 @@ public class ScoreService : IScoreService
             return scores[userId];
         else
             return null;
+    }
+
+    public async Task<QuizDetails> GetQuizResults(ulong guildId)
+    {
+        if (!quizesResults.TryGetValue(LastQuizIdForGuild[guildId], out QuizDetails quizDetails))
+        {
+            return null;
+        }
+
+        return quizDetails;
     }
 
     public async Task SaveToFile()
@@ -63,19 +75,29 @@ public class ScoreService : IScoreService
         quizesResults = await FileCacher.UpdateFromFile<ConcurrentDictionary<Guid, QuizDetails>>(quizesResultsPath);
     }
     
-    private void HandleSessionDetails(ulong idUser, Guid sessionId, bool answeredCorrectly)
+    private void HandleQuizDetails(ulong idGuild, ulong idUser, Guid quizId, bool answeredCorrectly)
     {
-        if (quizesResults.ContainsKey(sessionId))
+        if (quizesResults.ContainsKey(quizId))
         {
-            quizesResults[sessionId].Participants.Add(idUser);
+            quizesResults[quizId].Participants.Add(idUser);
             if (answeredCorrectly)
             {
-                quizesResults[sessionId].CorrectAnswers.Add(idUser);
+                quizesResults[quizId].CorrectAnswers.Add(idUser);
             }
         }
         else
         {
-            quizesResults.TryAdd(sessionId, new QuizDetails() { CorrectAnswers = new List<ulong>(), Participants = new List<ulong>() { idUser } });
+            var correctAnswers = new List<ulong>();
+            if(answeredCorrectly)
+                correctAnswers.Add(idUser);
+            
+            quizesResults.TryAdd(quizId, new QuizDetails() { CorrectAnswers = correctAnswers, Participants = new List<ulong>() { idUser } });
+            if (LastQuizIdForGuild.ContainsKey(idGuild))
+                LastQuizIdForGuild[idGuild] = quizId;
+            else
+            {
+                LastQuizIdForGuild.TryAdd(idGuild, quizId);
+            }
         }
     }
 }
@@ -96,8 +118,9 @@ public class QuizDetails
 
 public interface IScoreService
 {
-    Task<bool> AddScore(ulong idUser, Guid sessionId, bool answeredCorrectly);
+    Task<bool> AddScore(ulong guildId, ulong idUser, Guid quizId, bool answeredCorrectly);
     Task SaveToFile();
     Task UpdateFromFile();
     Task<Scoreboard> GetScore(ulong userId);
+    Task<QuizDetails> GetQuizResults(ulong guildId);
 }

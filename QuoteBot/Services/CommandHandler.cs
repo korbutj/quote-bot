@@ -50,7 +50,7 @@ public class CommandHandler
 
         var anwseredCorrectly = !component.Data.CustomId.Contains("false");
 
-        if (!await scoreService.AddScore(component.User.Id, sessionId, anwseredCorrectly))
+        if (!await scoreService.AddScore(component.GuildId.Value, component.User.Id, sessionId, anwseredCorrectly))
         {
             await component.RespondAsync($"ziomuś już odpowiedziałeś na to pytanie >:C", ephemeral: true);
             return;

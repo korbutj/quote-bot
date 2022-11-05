@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 using Discord;
 using Discord.Commands;
 using QuoteBot.Helpers;
@@ -10,13 +11,15 @@ namespace QuoteBot.Modules
     public class QuizModule : ModuleBase<SocketCommandContext>
     {
         private readonly IGuildService _guildService;
+        private readonly IScoreService _scoreService;
         private const int fakeAnswers = 3;
         private static Regex TimeRegex = new Regex(@"(\d\d:\d\d)");
         private const string AuthorReplacer = "<autor>";
 
-        public QuizModule(IGuildService guildService)
+        public QuizModule(IGuildService guildService, IScoreService scoreService)
         {
             _guildService = guildService;
+            _scoreService = scoreService;
         }
 
         [Command("SetQuoteChannel")]
@@ -98,6 +101,27 @@ namespace QuoteBot.Modules
             }
             
             await ReplyAsync($"{citation.Content} \n {string.Join(" ", citation.Authors.Select(x => x.Name))}", components: builder.Build());
+        }
+
+        [Command("results")]
+        public async Task Results()
+        {
+            var quizDetails = await _scoreService.GetQuizResults(this.Context.Guild.Id);
+
+            var msg = new StringBuilder();
+
+            msg.AppendLine("Wyniki ostatatniego kłizu:");
+            msg.AppendLine("✨🎉🎂🎆🎇🎊✨🎉🎂🎆🎇🎊");
+            
+            var winners = this.Context.Guild.Users.Where(x => quizDetails.CorrectAnswers.Contains(x.Id));
+            foreach (var winner in winners)
+            {
+                msg.AppendLine(winner.Mention);
+            }
+            msg.AppendLine("✨🎉🎂🎆🎇🎊✨🎉🎂🎆🎇🎊");
+
+            msg.AppendLine("Winners winners chickens dinners!");
+            await ReplyAsync(msg.ToString());
         }
     }
 }
