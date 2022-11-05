@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using QuoteBot.Helpers;
@@ -39,26 +40,28 @@ public class CommandHandler
     private async Task HandleButtonClickAsync(SocketMessageComponent component)
     {
         var scoreService = (IScoreService?)_serviceProvider.GetService(typeof(IScoreService));
-        if (!ulong.TryParse(component.Data.CustomId.Split('-')[0], out ulong citationId))
+        var eventNameComponents = component.Data.CustomId.Split(Globals.Splitter);
+        
+        if (!ulong.TryParse(eventNameComponents[0], out ulong citationId))
             throw new NotImplementedException();
         
-        if (!Guid.TryParse(component.Data.CustomId.Split('-')[1], out Guid sessionId))
+        if (!Guid.TryParse(eventNameComponents[1], out Guid sessionId))
             throw new NotImplementedException();
 
         var anwseredCorrectly = !component.Data.CustomId.Contains("false");
 
         if (!await scoreService.AddScore(component.User.Id, sessionId, anwseredCorrectly))
         {
-            await component.RespondAsync($"{component.User.Mention}: ziomuś już odpowiedziałeś na to pytanie >:C");
+            await component.RespondAsync($"ziomuś już odpowiedziałeś na to pytanie >:C", ephemeral: true);
             return;
         }
         
         var userScoreboard = await scoreService.GetScore(component.User.Id);
         
         if(anwseredCorrectly)
-            await component.RespondAsync($"{component.User.Mention}: 😎 gościu +1 łatwiutko \n {userScoreboard.PercantageGuessed:F}% aktualny stan rzeczy");
+            await component.RespondAsync($"😎 gościu łatwiutko essa\n {userScoreboard.PercentageGuessed:F}% aktualny stan rzeczy", ephemeral: true);
         else
-            await component.RespondAsync($"{component.User.Mention}: spierdoliłeś :fbsmiley: \n {userScoreboard.PercantageGuessed:F}% aktualny stan rzeczy");
+            await component.RespondAsync($"spierdoliłeś :fbsmiley:\n {userScoreboard.PercentageGuessed:F}% aktualny stan rzeczy", ephemeral: true);
     }
 
     private async Task HandleCommandAsync(SocketMessage messageParam)

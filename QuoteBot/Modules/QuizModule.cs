@@ -12,6 +12,7 @@ namespace QuoteBot.Modules
         private readonly IGuildService _guildService;
         private const int fakeAnswers = 3;
         private static Regex TimeRegex = new Regex(@"(\d\d:\d\d)");
+        private const string AuthorReplacer = "<autor>";
 
         public QuizModule(IGuildService guildService)
         {
@@ -48,17 +49,17 @@ namespace QuoteBot.Modules
             return ReplyAsync($"git ustawione {_guildService.GetGuildTime(this.Context.Guild.Id)}");
         }
 
-        [Command("StartQuiz")]
-        public async Task StartQuiz()
+        [Command("QueryQuizData")]
+        public async Task QueryQuizData()
         {
             var regex = new Regex(".{3,32}#[0-9]{4}");
             var messages = (await this.Context.Channel.GetMessagesAsync(1000).ToListAsync()).SelectMany(x => x);
 
             var users = this.Context.Guild.Roles.FirstOrDefault(x => x.Name.ToLower() == "Wewnętrzny krąg".ToLower())?.Members;
             
-            foreach (var message in messages.Where(x => x.MentionedUserIds.Any()))
+            foreach (var message in messages.Where(message => message.MentionedUserIds.Any() && !message.Author.IsBot))
             {
-                var cleanContent = regex.Replace(message.CleanContent, "<zgadnij kotku co mam w srodku>");
+                var cleanContent = regex.Replace(message.CleanContent, AuthorReplacer);
                 var authors = message.MentionedUserIds.Select(x => new User(){ Id = x, Name = users.FirstOrDefault(z => z.Id == x).DisplayName}).ToList();
                 
                 await _guildService.AddCitation(this.Context.Guild.Id, new Citation() { Authors = authors, Content = cleanContent, MessageId = message.Id});
@@ -71,10 +72,11 @@ namespace QuoteBot.Modules
         public async Task Test()
         {
             var citation = await _guildService.GetRandomCitation(this.Context.Guild.Id);
-
-            var builder = new ComponentBuilder();
+            var sessionId = Guid.NewGuid();
+            var eventNameBase = $"{citation.MessageId.ToString()}{Globals.Splitter.ToString()}{sessionId}{Globals.Splitter.ToString()}";
             
-            builder.WithButton(string.Join(", ", citation.Authors.Select(x => x.Name)), $"{citation.MessageId.ToString()}-true", ButtonStyle.Primary);
+            var builder = new ComponentBuilder();
+            builder.WithButton(string.Join(", ", citation.Authors.Select(x => x.Name)), $"{eventNameBase}true", ButtonStyle.Primary);
             
             var possibleFakeAnswers = this.Context.Guild.Roles
                 .FirstOrDefault(x => x.Name.ToLower() == "Wewnętrzny krąg".ToLower())
@@ -92,8 +94,7 @@ namespace QuoteBot.Modules
                     .OrderBy(x => rand.Next())
                     .Take(authorsCount)
                     .ToList();
-                var sessionId = Guid.NewGuid().ToString().Replace("-", "");
-                builder.WithButton(string.Join(", ", fakeAnswerUsers.Select(x => x.DisplayName)), $"{citation.MessageId.ToString()}-{sessionId}-false{i}", ButtonStyle.Primary);
+                builder.WithButton(string.Join(", ", fakeAnswerUsers.Select(x => x.DisplayName)), $"{eventNameBase}false{i}", ButtonStyle.Primary);
             }
             
             await ReplyAsync($"{citation.Content} \n {string.Join(" ", citation.Authors.Select(x => x.Name))}", components: builder.Build());

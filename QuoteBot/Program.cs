@@ -38,15 +38,18 @@ namespace QuoteBot
             await _client.StartAsync();
 
             var environmentService = services.GetRequiredService<IGuildService>();
-            await environmentService.UpdateCitationsFromFile();
-            await environmentService.UpdateGuildSettingsFromFile();
+            var scoreService = services.GetRequiredService<IScoreService>();
+
+            await Task.WhenAll(environmentService.UpdateCitationsFromFile(),
+                environmentService.UpdateGuildSettingsFromFile(), 
+                scoreService.UpdateFromFile());
             
             var hostedService = new TimedHostedService(services.GetRequiredService<ILogger<TimedHostedService>>(),services.GetRequiredService<DiscordSocketClient>(), environmentService);
             var cancellationToken = new CancellationToken();
             
             await hostedService.StartAsync(cancellationToken);
             
-            var cacheService = new CacheHostedService(services.GetRequiredService<ILogger<CacheHostedService>>(), environmentService);
+            var cacheService = new CacheHostedService(services.GetRequiredService<ILogger<CacheHostedService>>(), environmentService, scoreService);
             await cacheService.StartAsync(cancellationToken);
             
             await Task.Delay(-1);

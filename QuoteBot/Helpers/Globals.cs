@@ -2,5 +2,6 @@
 
 public static class Globals
 {
-    public const string MongoDbName = "discord";
+    public const ulong BotId = 1021837600069255258;
+    public const char Splitter = '#';
 }
